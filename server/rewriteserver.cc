@@ -7,6 +7,7 @@
 #include "optimizer.h"
 #include "version.h"
 
+#include <llvm/Support/raw_ostream.h>
 #include <rellume/rellume.h>
 
 #include <llvm/ADT/SmallVector.h>
@@ -328,22 +329,26 @@ public:
         if (dumpIR.isSet(DumpIR::Lift))
             mod->print(llvm::errs(), nullptr);
 
-        auto time_instrument_start = std::chrono::steady_clock::now();
-        fn = ChangeCallConv(fn, instrew_cc);
-        if (dumpIR.isSet(DumpIR::CC))
-            mod->print(llvm::errs(), nullptr);
+        // auto time_instrument_start = std::chrono::steady_clock::now();
+        // fn = ChangeCallConv(fn, instrew_cc);
+        // if (dumpIR.isSet(DumpIR::CC))
+        //     mod->print(llvm::errs(), nullptr);
 
-        auto time_llvm_opt_start = std::chrono::steady_clock::now();
-        optimizer.Optimize(fn);
-        if (dumpIR.isSet(DumpIR::Opt))
-            mod->print(llvm::errs(), nullptr);
+        // auto time_llvm_opt_start = std::chrono::steady_clock::now();
+        // optimizer.Optimize(fn);
+        // if (dumpIR.isSet(DumpIR::Opt))
+        //     mod->print(llvm::errs(), nullptr);
 
-        auto time_llvm_codegen_start = std::chrono::steady_clock::now();
-        codegen.GenerateCode(mod.get());
-        if (dumpIR.isSet(DumpIR::CodeGen))
-            mod->print(llvm::errs(), nullptr);
+        // auto time_llvm_codegen_start = std::chrono::steady_clock::now();
+        // codegen.GenerateCode(mod.get());
+        // if (dumpIR.isSet(DumpIR::CodeGen))
+        //     mod->print(llvm::errs(), nullptr);
 
-        iw_sendobj(iwc, addr, obj_buffer.data(), obj_buffer.size(), hash);
+        std::string str;
+        llvm::raw_string_ostream os(str);
+        mod->print(os, nullptr);
+
+        iw_sendobj(iwc, addr, str.data(), str.size(), hash);
 
         // Remove unused functions and dead prototypes. Having many prototypes
         // causes some compile-time overhead.
@@ -353,10 +358,10 @@ public:
 
         if (enableProfiling) {
             dur_predecode += time_lifting_start - time_predecode_start;
-            dur_lifting += time_instrument_start - time_lifting_start;
-            dur_instrument += time_llvm_opt_start - time_instrument_start;
-            dur_llvm_opt += time_llvm_codegen_start - time_llvm_opt_start;
-            dur_llvm_codegen += std::chrono::steady_clock::now() - time_llvm_codegen_start;
+            // dur_lifting += time_instrument_start - time_lifting_start;
+            // dur_instrument += time_llvm_opt_start - time_instrument_start;
+            // dur_llvm_opt += time_llvm_codegen_start - time_llvm_opt_start;
+            // dur_llvm_codegen += std::chrono::steady_clock::now() - time_llvm_codegen_start;
         }
     }
 };
